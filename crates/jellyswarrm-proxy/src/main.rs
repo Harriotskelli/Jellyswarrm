@@ -710,7 +710,7 @@ async fn proxy_handler(
             let path = "index.html"
         }
     } else { 
-        let path = path
+        let path = path;
     };
     let decoded_path = percent_decode_str(path).decode_utf8_lossy().to_string();
     if let Some(content) = Asset::get(&decoded_path) {
