@@ -707,7 +707,7 @@ async fn proxy_handler(
                 .body(Body::empty())
                 .unwrap())
         } else {
-            let path = "index.html"
+            let path = "index.html";
         }
     } else { 
         let path = path;
