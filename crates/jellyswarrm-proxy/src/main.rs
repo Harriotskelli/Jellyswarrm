@@ -757,14 +757,6 @@ async fn proxy_handler(
         path
     };
     let path = if path.is_empty() { "index.html" } else { path };
-    let decoded_path = percent_decode_str(path).decode_utf8_lossy().to_string();
-    if let Some(content) = Asset::get(&decoded_path) {
-        let mime = mime_guess::from_path(decoded_path).first_or_octet_stream();
-        return Ok(Response::builder()
-            .header("Content-Type", mime.as_ref())
-            .body(Body::from(content.data.into_owned()))
-            .unwrap());
-    }
 
     let preprocessed = preprocess_request(req, &state).await.map_err(|e| {
         error!("Failed to preprocess request: {}", e);
