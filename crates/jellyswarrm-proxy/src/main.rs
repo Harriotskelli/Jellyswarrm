@@ -357,7 +357,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Router::new()
             // UI Management routes
             .nest(&format!("/{ui_route}"), ui_routes())
-            .route("/", get(index_handler))
+            .route("/", get(proxy_handler))
             .route(
                 "/QuickConnect/Enabled",
                 get(handlers::quick_connect::handle_quick_connect_enabled),
@@ -693,7 +693,25 @@ async fn proxy_handler(
     } else {
         path
     };
-    let path = if path.is_empty() { "index.html" } else { path };
+    if path.is_empty() || path == "index.html" { 
+        let servers = state.server_storage.list_servers().await.map_err(|e| {
+            error!("Failed to list servers: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+        if servers.is_empty() {
+            // No servers configured, redirect to UI management
+            Ok(Response::builder()
+                .status(StatusCode::TEMPORARY_REDIRECT)
+                .header("Location", "/ui")
+                .body(Body::empty())
+                .unwrap())
+        } else {
+            let path = "index.html"
+        }
+    } else { 
+        let path = path
+    };
     let decoded_path = percent_decode_str(path).decode_utf8_lossy().to_string();
     if let Some(content) = Asset::get(&decoded_path) {
         let mime = mime_guess::from_path(decoded_path).first_or_octet_stream();
