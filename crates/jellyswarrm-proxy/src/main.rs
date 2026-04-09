@@ -651,7 +651,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn index_handler(
     State(state): State<AppState>,
-    _req: Request,
+    req: Request,
 ) -> Result<Response<Body>, StatusCode> {
     let servers = state.server_storage.list_servers().await.map_err(|e| {
         error!("Failed to list servers: {}", e);
