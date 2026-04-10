@@ -357,7 +357,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Router::new()
             // UI Management routes
             .nest(&format!("/{ui_route}"), ui_routes())
-            .route("/", get(index_handler))
+            .route(
+                "/",
+                Ok(Response::builder()
+                    .status(StatusCode::TEMPORARY_REDIRECT)
+                    .header("Location", "/web")
+                    .body(Body::empty())
+                    .unwrap())
+            )
+            .route("/web", get(index_handler))
             .route(
                 "/QuickConnect/Enabled",
                 get(handlers::quick_connect::handle_quick_connect_enabled),
