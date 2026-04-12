@@ -666,6 +666,8 @@ async fn index_handler(
             .body(Body::empty())
             .unwrap())
     } else {
+
+        let path = if path.is_empty() { "web/index.html" } else { path };
         
         let preprocessed = preprocess_request(req, &state).await.map_err(|e| {
         error!("Failed to preprocess request: {}", e);
@@ -756,7 +758,7 @@ async fn proxy_handler(
     } else {
         path
     };
-    let path = if path.is_empty() { "index.html" } else { path };
+    let path = if path.is_empty() { "web/index.html" } else { path };
 
     let preprocessed = preprocess_request(req, &state).await.map_err(|e| {
         error!("Failed to preprocess request: {}", e);
