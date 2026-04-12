@@ -658,6 +658,14 @@ async fn index_handler(
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
 
+    let path = req.uri().path();
+    debug!("Using generic processing for path: {}", path);
+    let path = if let Some(path) = path.strip_prefix('/') {
+        path
+    } else {
+        path
+    };
+
     if servers.is_empty() {
         // No servers configured, redirect to UI management
         Ok(Response::builder()
