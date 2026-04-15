@@ -712,6 +712,7 @@ async fn index_handler(
             error!("index.html not found in static assets");
             Err(StatusCode::NOT_FOUND)
         }
+    }
 }
 
 #[axum::debug_handler]
