@@ -95,12 +95,12 @@ pub async fn handle_get_users(
     }
     else {
         for item in users {
-            let user = crate::models::User {
+            let mut user = crate::models::User {
                 name: item.original_username,
                 id: item.id,
-                policy.is_administrator: false,
-                server_user.server_id: state.config.read().await.server_id.clone();
             };
+            user.policy.is_administrator = false;
+            user.server_id = state.config.read().await.server_id.clone();
             current_users.push(user)
         }
     }
