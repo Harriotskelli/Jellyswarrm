@@ -369,10 +369,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .nest(
                 "/Shows",
-                Router::new()
+                Router::new(
                     .route(
                         "/Upcoming", 
                         get(handlers::federated::get_items_from_all_servers_if_not_restricted),
+                    )
             )
             .route(
                 "/JellyfinEnhanced",
