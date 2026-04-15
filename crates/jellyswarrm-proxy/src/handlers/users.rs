@@ -98,9 +98,11 @@ pub async fn handle_get_users(
             let mut user = crate::models::User {
                 name: item.original_username,
                 id: item.id,
+                policy: NULL,
+                extra: NULL,
+                server_id: state.config.read().await.server_id.clone(),
             };
             user.policy.is_administrator = false;
-            user.server_id = state.config.read().await.server_id.clone();
             current_users.push(user)
         }
     }
