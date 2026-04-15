@@ -65,6 +65,48 @@ pub async fn handle_get_me(
     Ok(Json(server_user))
 }
 
+pub async fn handle_get_users(
+    State(state): State<AppState>,
+    req: Request,
+) -> ResultResult<Json<Vec<crate::models::User>>, StatusCode> {
+
+    let mut servers = state
+        .server_storage
+        .list_servers()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if servers.is_empty() {
+        tracing::warn!("No servers configured for authentication");
+        return Err(StatusCode::NOT_FOUND);
+    }
+
+    let mut current_users: Vec<crate::models::User> = Vec::new();
+
+    let mut users = state
+        .user_authorization
+        .list_users()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    
+    if users.is_empty() {
+        tracing::warn!("No users found to return");
+        return Err(StatusCode::NOT_FOUND);
+    }
+    else {
+        for item in users {
+            let user = crate::models::User {
+                name: item.original_username,
+                id: item.id,
+                policy.is_administrator: false,
+                server_user.server_id: state.config.read().await.server_id.clone();
+            };
+            current_users.push(user)
+        }
+    }
+    ok(json(current_users))
+}
+
 pub async fn handle_get_user_by_id(
     State(state): State<AppState>,
     Path(_user_id): Path<String>,

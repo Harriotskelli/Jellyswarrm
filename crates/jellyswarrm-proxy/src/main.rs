@@ -360,6 +360,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .route("/", get(index_handler))
             .route("/web", get(proxy_handler))
             .route(
+                "/Genres",
+                get(handlers::federated::get_items_from_all_servers_if_not_restricted),
+            )
+            .route(
+                "/Studios",
+                get(handlers::federated::get_items_from_all_servers_if_not_restricted),
+            )
+            .nest(
+                "/Shows",
+                Router::new()
+                    .route(
+                        "/Upcoming", 
+                        get(handlers::federated::get_items_from_all_servers_if_not_restricted),
+            )
+            .route(
+                "/JellyfinEnhanced",
+                get(handlers::injectedplugins::just_proxy)
+            )
+            .nest(
+                "/DisplayPreferences",
+                Router::new(
+                    .route(
+                        "/usersettings",
+                        get(handlers::injectedplugins::get_kefin_settings)
+                    )
+                )
+            )
+            .route(
+                "/CustomTabs/Config",
+                get(handlers::injectedplugins:just_proxy),
+            )
+            .route(
                 "/QuickConnect/Enabled",
                 get(handlers::quick_connect::handle_quick_connect_enabled),
             )
@@ -419,6 +451,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .nest(
                 "/Users",
                 Router::new()
+                    .route(
+                        "/",
+                        get(handlers::users::handle_get_users),
+                    )
                     .route(
                         "/AuthenticateByName",
                         post(handlers::users::handle_authenticate_by_name),
@@ -658,7 +694,6 @@ async fn index_handler(
         error!("Failed to list servers: {}", e);
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
-
     if servers.is_empty() {
         // No servers configured, redirect to UI management
         Ok(Response::builder()
@@ -667,14 +702,16 @@ async fn index_handler(
             .body(Body::empty())
             .unwrap())
     } else {
-        
-        Ok(Response::builder()
-            .status(StatusCode::TEMPORARY_REDIRECT)
-            .header("Location", "/web/")
-            .body(Body::empty())
-            .unwrap())
-        
-    }
+        if let Some(content) = Asset::get("index.html") {
+            Ok(Response::builder()
+                .header("Content-Type", "text/html")
+                .body(Body::from(content.data.into_owned()))
+                .unwrap())
+        } else {
+            // Fallback if index.html is not found in assets
+            error!("index.html not found in static assets");
+            Err(StatusCode::NOT_FOUND)
+        }
 }
 
 #[axum::debug_handler]
@@ -690,7 +727,7 @@ async fn proxy_handler(
     } else {
         path
     };
-    let path = if path.is_empty() { "web/index.html" } else { path };
+    let path = if path.is_empty() { "index.html" } else { path };
 
     let preprocessed = preprocess_request(req, &state).await.map_err(|e| {
         error!("Failed to preprocess request: {}", e);

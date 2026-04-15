@@ -35,8 +35,8 @@ pub async fn info(
         StatusCode::BAD_REQUEST
     })?;
 
-    preprocessed.user.ok_or_else(|| {
-        error!("User not found in request preprocessing");
+    preprocessed.auth.ok_or_else(|| {
+        error!("Authorization not found in request preprocessing");
         StatusCode::UNAUTHORIZED
     })?;
 
