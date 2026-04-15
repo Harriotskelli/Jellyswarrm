@@ -68,7 +68,7 @@ pub async fn handle_get_me(
 pub async fn handle_get_users(
     State(state): State<AppState>,
     req: Request,
-) -> ResultResult<Json<Vec<crate::models::User>>, StatusCode> {
+) -> Result<Json<Vec<crate::models::User>>, StatusCode> {
 
     let mut servers = state
         .server_storage
@@ -104,7 +104,7 @@ pub async fn handle_get_users(
             current_users.push(user)
         }
     }
-    ok(json(current_users))
+    Ok(json(current_users))
 }
 
 pub async fn handle_get_user_by_id(

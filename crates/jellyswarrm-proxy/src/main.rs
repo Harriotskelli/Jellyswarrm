@@ -389,7 +389,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .route(
                 "/CustomTabs/Config",
-                get(handlers::injectedplugins:just_proxy),
+                get(handlers::injectedplugins::just_proxy),
             )
             .route(
                 "/QuickConnect/Enabled",
