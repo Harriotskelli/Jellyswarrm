@@ -4,14 +4,16 @@ use axum::{
 };
 use hyper::{HeaderMap, StatusCode};
 use tracing::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    encryption::Password,
-    handlers::common::execute_json_request,
-    models::{AuthenticateRequest, AuthenticateResponse, Authorization, SyncPlayUserAccessType},
-    request_preprocessing::preprocess_request,
-    url_helper::join_server_url,
-    AppState,
+    AppState, 
+    encryption::Password, 
+    handlers::common::execute_json_request, 
+    models::{AuthenticateRequest, AuthenticateResponse, 
+        Authorization, SyncPlayUserAccessType}, 
+    request_preprocessing::preprocess_request, 
+    url_helper::join_server_url
 };
 
 use anyhow::Result;
@@ -65,12 +67,13 @@ pub async fn handle_get_me(
     Ok(Json(server_user))
 }
 
+#[axum::debug_handler]
 pub async fn handle_get_users(
     State(state): State<AppState>,
-    req: Request,
-) -> Result<Json<Vec<crate::models::User>>, StatusCode> {
+    _req: Request,
+) -> Result<Json<Vec<DummyUser>>, StatusCode> {
 
-    let mut servers = state
+    let servers = state
         .server_storage
         .list_servers()
         .await
@@ -81,32 +84,29 @@ pub async fn handle_get_users(
         return Err(StatusCode::NOT_FOUND);
     }
 
-    let mut current_users: Vec<crate::models::User> = Vec::new();
+    let mut current_users: Vec<DummyUser> = Vec::new();
 
-    let mut users = state
+    let users = state
         .user_authorization
         .list_users()
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    
+
     if users.is_empty() {
         tracing::warn!("No users found to return");
         return Err(StatusCode::NOT_FOUND);
-    }
-    else {
+    } else {
         for item in users {
-            let mut user = crate::models::User {
-                name: item.original_username,
-                id: item.id,
-                policy: NULL,
-                extra: NULL,
+            let newuser = DummyUser {
+                user_id: item.id,
+                user_name: item.original_username,
                 server_id: state.config.read().await.server_id.clone(),
+                
             };
-            user.policy.is_administrator = false;
-            current_users.push(user)
+            current_users.push(newuser)
         }
     }
-    Ok(json(current_users))
+    Ok(Json(current_users))
 }
 
 pub async fn handle_get_user_by_id(
@@ -562,4 +562,11 @@ struct SuccessfulServerAuth {
     auth_response: AuthenticateResponse,
     final_username: String,
     final_password: crate::encryption::Password,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DummyUser {
+    pub user_id: String,
+    pub user_name: String,
+    pub server_id: String,
 }

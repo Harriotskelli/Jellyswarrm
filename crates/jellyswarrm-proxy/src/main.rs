@@ -377,19 +377,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .route(
                 "/JellyfinEnhanced",
-                get(handlers::injectedplugins::just_proxy)
+                get(proxy_handler)
             )
             .nest(
                 "/DisplayPreferences",
                 Router::new()
                     .route(
                         "/usersettings",
-                        get(handlers::injectedplugins::get_kefin_settings)
+                        get(proxy_handler)
                     )
             )
             .route(
                 "/CustomTabs/Config",
-                get(handlers::injectedplugins::just_proxy),
+                get(proxy_handler),
             )
             .route(
                 "/QuickConnect/Enabled",
@@ -688,7 +688,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn index_handler(
     State(state): State<AppState>,
-    req: Request,
+    _req: Request,
 ) -> Result<Response<Body>, StatusCode> {
     let servers = state.server_storage.list_servers().await.map_err(|e| {
         error!("Failed to list servers: {}", e);
@@ -729,6 +729,15 @@ async fn proxy_handler(
         path
     };
     let path = if path.is_empty() { "index.html" } else { path };
+
+    let decoded_path = percent_decode_str(path).decode_utf8_lossy().to_string();
+    if let Some(content) = Asset::get(&decoded_path) {
+        let mime = mime_guess::from_path(decoded_path).first_or_octet_stream();
+        return Ok(Response::builder()
+            .header("Content-Type", mime.as_ref())
+            .body(Body::from(content.data.into_owned()))
+            .unwrap());
+    }
 
     let preprocessed = preprocess_request(req, &state).await.map_err(|e| {
         error!("Failed to preprocess request: {}", e);
