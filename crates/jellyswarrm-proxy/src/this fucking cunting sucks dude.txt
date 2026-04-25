@@ -1,0 +1,26 @@
+this fucking cunting sucks dude
+
+so Seerr will do a get on /System/info
+it has device headers with a token
+
+but because this fucking piece of garbage does not have api considerations
+this means fucking nothing.
+
+This is a valid authorization header but because it's not mapped to a swarrm session it's just dumpped for no reason
+
+Trying to make rust just fucking compare the client contents and use the existing auth is like pulling ass hairs
+
+I need someway for it to authenticate properly. 
+this could be a Swarrm specific api configuration (which it should already fucking have)
+or some kind of trickery that makes it think that it has a mapped session for existing api keys on the downstream jellyfin
+
+either way im in for some fuckery 
+
+the api config will need to
+    - be modifiable in the ui
+    - probably generate mapped tokens for federated servers
+    - be searchable by the authorization service so they are accepted as headers
+
+the trickery could 
+    - try authenticating first with a api token header
+    - mapping a session if that is successful like any use0
